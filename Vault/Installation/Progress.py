@@ -11,7 +11,7 @@ import sys
 import time
 
 class Progress(object):
-  def __init__(self, executions, interactive = False, iteration = 0, total = None, prefix = '', suffix = '', decimals = 1, length = 35 , fill = '█'):
+  def __init__(self, executions, interactive = False, iteration = 0, total = None, prefix = '', suffix = '', decimals = 1, length = 40 , fill = '█'):
     self.executions = executions
     self.interactive = interactive
 

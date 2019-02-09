@@ -14,10 +14,13 @@ from Payload.Vault.Installation.Preseed import Preseed
 from Payload.Vault.Installation.Installer import Installer
 from Payload.Vault.Shell.Terminal import Terminal
 from Payload.Vault.Shell.Display import Display
+from Payload.Vault.Shell.CMD import CMD
 from Payload.Vault.Network.Host import Host
 from Payload.Vault.Network.VPS import VPS
 from Payload.Vault.Network.Gateway import Gateway
 from Payload.Vault.Network.Proxy import Proxy
+
+vDIRECTORY = "/mnt/vCloud-1/Infrastructure/Virtual-Machines/"
 
 def resource_path(relative_path):
   base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
@@ -25,24 +28,23 @@ def resource_path(relative_path):
 
 
 def main():
-  Display().header()
-  Display().copyright()
-  
   v_Host = Host(input.h_User, input.h_IP, input.h_OS, input.Gmail)
   v_VPS = VPS(input.v_User, input.v_Password, input.v_IP, input.v_Type, input.v_RAM, input.v_CPU, input.Domain, input.SSL)
   v_VPS.hostname = v_VPS.name 
   v_Gateway = Gateway(input.g_User, input.g_IP)
   v_Proxy = Proxy(input.p_User, input.p_IP)
-  v_Preseed = Preseed(v_VPS.user, v_VPS.password, v_VPS.IP, v_VPS.hostname)
+  Preseed.HOSTNAME = v_VPS.hostname
 
-  v_Installer = Installer(v_Preseed, v_VPS.RAM, v_VPS.CPUs, v_VPS.IP)
-  v_Installer.install(v_VPS.type)
+  v_Preseed = Preseed(v_VPS.user, v_VPS.password, v_VPS.IP, Preseed.HOSTNAME)
 
+  v_Installer = Installer(v_Preseed, v_VPS.RAM, v_VPS.CPUs, v_VPS.IP).install(v_VPS.type)
+ # v_Installer.install(v_VPS.type)
+  subprocess.run(f"""ssh snow@192.168.1.5 -t "sudo {vDIRECTORY}create-VPS.sh" """)
   # if v_VPS.type == "minimal" or v_VPS.type == "basic":
   #   if v_Host.OS == "linux":
-  #     Progress(100).display()
+  #     Progress(6 * 60).display()
   #   elif v_Host.OS == "windows":
-  #     Progress(100).display()
+  #     Progress(6 * 60).display()
   #   else: 
   #     print("Invalid Host Operating System")
   #     quit()
@@ -105,4 +107,7 @@ if __name__ == "__main__":
 
   input = parser.parse_args()
 
+  Display().header()
+  Display().copyright()
+  print("Executing Injections".center(os.get_terminal_size().columns))
   main()

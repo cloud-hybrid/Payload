@@ -17,7 +17,12 @@ class Preseed(object):
     self.user = user
     self.password = password
     self.IP = IP
-    self.hostname = hostname
+    self.hostname = Preseed.HOSTNAME
+
+  @property
+  def HOSTNAME(self):
+    hostname = None
+    return hostname
 
   @property
   def preseed(self):
