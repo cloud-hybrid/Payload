@@ -11,7 +11,7 @@ import sys
 import time
 
 class Progress(object):
-  def __init__(self, executions, interactive = False, iteration = 0, total = None, prefix = '', suffix = '', decimals = 1, length = 40, fill = '█'):
+  def __init__(self, executions, interactive = False, iteration = 0, total = None, prefix = '', suffix = '', decimals = 1, length = 35 , fill = '█'):
     self.executions = executions
     self.interactive = interactive
 
@@ -25,16 +25,6 @@ class Progress(object):
     self.total = executions
 
   def display(self):
-    sys.stdout.write("╔═════════════╦═══════════════════════╗".center(os.get_terminal_size().columns))
-    sys.stdout.write("║             ║  © Vault Cipher LLC.  ║".center(os.get_terminal_size().columns))
-    sys.stdout.write("║   Payload   ╟───────────────────────╢".center(os.get_terminal_size().columns))
-    sys.stdout.write("║             ║   Jacob B. Sanders    ║".center(os.get_terminal_size().columns))
-    sys.stdout.write("╟─────────────╨───────────────────────╢".center(os.get_terminal_size().columns))
-    sys.stdout.write("║     developer.vault@gmail.com       ║".center(os.get_terminal_size().columns))
-    sys.stdout.write("╟───────────────────────────┬─────────╢".center(os.get_terminal_size().columns))
-    sys.stdout.write("║    git.vaultcipher.com    │  snow   ║".center(os.get_terminal_size().columns))
-    sys.stdout.write("╚═══════════════════════════╧═════════╝".center(os.get_terminal_size().columns))
-
     print("Initializing Security Handshake".center(os.get_terminal_size().columns), end = "\r")
     time.sleep(1.5)
 

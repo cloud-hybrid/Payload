@@ -13,3 +13,15 @@ __pycache__/
 
 dist/
 build/
+
+Distribution/
+Build/
+
+.vscode\
+__pycache__\
+
+dist\
+build\
+
+Distribution\
+Build\

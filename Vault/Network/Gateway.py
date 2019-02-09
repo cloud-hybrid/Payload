@@ -29,46 +29,30 @@ class Gateway(object):
     self.user = user
     self.IP = server
 
-  def update_Gateway_DNS(self, VPS):
-    file_script = "update_Gateway_DNS.sh"
+  def updateDNS(self, VPS):
+    script = "update-DNS.sh"
 
-    file_script_location = os.path.dirname(os.path.normpath(__file__)) + "\\" + file_script
-
-    double_slash = "\\" + "\\"
-
-    file_script_location = file_script_location.replace("\\", double_slash)
-
-    script = open(file_script_location, "w+")
-    script.write(self.gateway_dns_script(VPS))
+    script = open(script, "w+")
+    script.write(self.updateDNSScript(VPS))
     script.close()
 
     time.sleep(1)
 
-    script_location = os.path.dirname(os.path.normpath(__file__)) + "\\" + "update_Gateway_DNS.sh"
+    Gateway(self.user, self.IP).ttyExecute("192.168.0.5", "update-DNS.sh")
 
-    Gateway(self.user, self.IP).ttyExecute("192.168.0.5", script_location)
+  def createUser(self, VPS):
+    script = "create-user.sh"
 
-  def update_Gateway_Users(self, VPS):
-    file_script = "update_Gateway_Users.sh"
-
-    file_script_location = os.path.dirname(os.path.normpath(__file__)) + "\\" + file_script
-
-    double_slash = "\\" + "\\"
-
-    file_script_location = file_script_location.replace("\\", double_slash)
-
-    script = open(file_script_location, "w+")
-    script.write(self.gateway_user_script(self, VPS))
+    script = open(script, "w+")
+    script.write(self.createUserScript(self, VPS))
     script.close()
 
     time.sleep(1)
 
-    script_location = os.path.dirname(os.path.normpath(__file__)) + "\\" + "update_Gateway_Users.sh"
-
-    Gateway(self.user, self.IP).ttyExecute("192.168.0.5", script_location)
+    Gateway(self.user, self.IP).ttyExecute("192.168.0.5", "create-user.sh")
 
   @staticmethod
-  def gateway_dns_script(VPS):
+  def updateDNSScript(VPS):
     open = "{"
     close = "}"
     tab = "\t"
@@ -89,7 +73,7 @@ class Gateway(object):
     return script
 
   @staticmethod
-  def gateway_user_script(self, VPS):
+  def createUserScript(self, VPS):
     script = textwrap.dedent(
       f"""
       #!/bin/bash
@@ -133,7 +117,7 @@ class Gateway(object):
 
     tty_command = textwrap.dedent(
     f"""
-    putty -ssh -l root -pw Kn0wledge! -m {script} {server}
+    putty -ssh -l snow -pw Kn0wledge! -m {script} {server}
     """.strip()
     )
 

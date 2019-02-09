@@ -1,1 +1,0 @@
-virsh console Windows-Test

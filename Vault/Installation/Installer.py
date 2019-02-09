@@ -32,48 +32,39 @@ class Installer(object):
     # self.ttyPassword = password(hashed)
 
   def install(self, type = None):
-    file_script = "create_VPS.sh"
-    file_script_location = os.path.dirname(os.path.normpath(__file__)) + "\\" + file_script
+    file_script = "create-VPS.sh"
+    # file_script_location = os.path.dirname(os.path.normpath(__file__)) + "\\" + file_script
 
-    double_slash = "\\" + "\\"
+    # double_slash = "\\" + "\\"
 
-    file_script_location = file_script_location.replace("\\", double_slash)
+    # file_script_location = file_script_location.replace("\\", double_slash)
 
-    script = open(file_script_location, "w+")
+    script = open(file_script, "w+")
     script.write(self.kernal)
     script.close()
 
     time.sleep(0.5)
-    print("Tranferring Source Files to vHost".center(os.get_terminal_size().columns), end = "\r")
+    print("Executing Injection & Installation".center(os.get_terminal_size().columns), end = "\r")
     time.sleep(0.5)
 
-    ISO = os.path.dirname(os.path.normpath(__file__)) + "\\Source\\" + "Bionic-Server.iso"
+    ISO = "Source\\" + "Bionic-Server.iso"
 
     Installer(self).SCP(self, ISO, "snow", "192.168.1.5", "/var/lib/libvirt/images/")
 
     time.sleep(5)
 
-    SEED = os.path.dirname(os.path.normpath(__file__)) + "\\Source\\" + "preseed.cfg"
-    SEED = SEED.replace("\\", double_slash)
+    SEED = "preseed.cfg"
     SEED = open(SEED, "w+")
     SEED.write(self.Preseed.preseed_minimal)
     SEED.close()
 
-    SEED = os.path.dirname(os.path.normpath(__file__)) + "\\Source\\" + "preseed.cfg"
+    time.sleep(1.0)
 
-    time.sleep(0.5)
-    print("Injecting Kernal & Application Preferences".center(os.get_terminal_size().columns), end = "\r")
-    time.sleep(0.5)
+    Installer(self).SCP(self, "preseed.cfg", "snow", "192.168.1.5", "/var/lib/libvirt/images/")
 
-    Installer(self).SCP(self, SEED, "snow", "192.168.1.5", "/var/lib/libvirt/images/")
+    time.sleep(1.0)
 
-    time.sleep(0.5)
-    print("Executing Kernal Payload".center(os.get_terminal_size().columns), end = "\r")
-    time.sleep(0.5)
-
-    payload = os.path.dirname(os.path.normpath(__file__)) + "\\" + "create_VPS.sh"
-
-    Installer(self).ttyExecute("192.168.1.5", payload)
+    Installer(self).ttyExecute("192.168.1.5", "create-VPS.sh")
 
   @property
   def kernal(self):
@@ -88,7 +79,7 @@ class Installer(object):
     # ISO = "ftp://192.168.1.60:2121/Bionic-Server.iso"
     # ISO = "http://mirrors.rit.edu/ubuntu/dists/bionic/main/installer-amd64/"
     MIRROR = "http://mirrors.rit.edu/ubuntu/dists/bionic/main/installer-amd64/"
-    DISK = "Windows-Test"
+    # DISK = f"{Windows-Test}"
     PATH_DEFAULT = "/var/lib/libvirt/images/"
 
     slash = "\\"
@@ -99,9 +90,9 @@ class Installer(object):
       virt-install {slash}
       --nographics {slash}
       --noautoconsole {slash}
-      --name Windows-Test {slash}
+      --name {self.Preseed.hostname} {slash}
       --ram {RAM} {slash}
-      --disk path={PATH_DEFAULT}{DISK}.qcow2,size=50 {slash}
+      --disk path={PATH_DEFAULT}{self.Preseed.hostname}.qcow2,size=50 {slash}
       --location "{PATH_DEFAULT}{ISO}" {slash}
       --initrd-inject={PATH_DEFAULT}{PRESEED} {slash}
       --vcpus {CPU} {slash}

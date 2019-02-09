@@ -18,7 +18,7 @@ class CMD(object):
 
   @staticmethod
   def console(command):
-    script = os.path.dirname(os.path.normpath(__file__)) + "\\" + "tmp-Console.bat"
+    script = "console.bat"
     
     content = textwrap.dedent(
 f"""
@@ -33,13 +33,11 @@ start cmd /k "{command}"
 
     time.sleep(2.5)
 
-    script = os.path.dirname(os.path.normpath(__file__)) + "\\" + "tmp-Console.bat"
-
-    process = subprocess.call(script, shell = True)
+    process = subprocess.call("console.bat", shell = True)
 
   @staticmethod
   def execute(command):
-    script = os.path.dirname(os.path.normpath(__file__)) + "\\" + "tmp-Console.bat"
+    script = "execute.bat"
     
     content = textwrap.dedent(
 f"""
@@ -54,6 +52,4 @@ start cmd /c "{command}"
 
     time.sleep(2.5)
 
-    script = os.path.dirname(os.path.normpath(__file__)) + "\\" + "tmp-Console.bat"
-
-    process = subprocess.call(script, shell = True)
+    process = subprocess.call("execute.bat", shell = True)
