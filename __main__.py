@@ -38,36 +38,36 @@ def main():
   v_Installer = Installer(v_Preseed, v_VPS.RAM, v_VPS.CPUs, v_VPS.IP)
   v_Installer.install(v_VPS.type)
 
-  if v_VPS.type == "minimal" or v_VPS.type == "basic":
-    if v_Host.OS == "linux":
-      Progress(1350).display()
-    elif v_Host.OS == "windows":
-      Progress(1400).display()
-    else: 
-      print("Invalid Host Operating System")
-      quit()
+  # if v_VPS.type == "minimal" or v_VPS.type == "basic":
+  #   if v_Host.OS == "linux":
+  #     Progress(100).display()
+  #   elif v_Host.OS == "windows":
+  #     Progress(100).display()
+  #   else: 
+  #     print("Invalid Host Operating System")
+  #     quit()
 
-  elif v_VPS.type == "lamp" or v_VPS.type == "lamp_wordpress":
-    if v_Host.OS == "linux":
-      Progress(1500).display()
-    elif v_Host.OS == "windows":
-      Progress(1650).display()
-    else: 
-      print("Invalid Host Operating System")
-      quit()
-  else:
-    print("Invalid VPS().Type")
-    quit()
+  # elif v_VPS.type == "lamp" or v_VPS.type == "lamp_wordpress":
+  #   if v_Host.OS == "linux":
+  #     Progress(1500).display()
+  #   elif v_Host.OS == "windows":
+  #     Progress(1650).display()
+  #   else: 
+  #     print("Invalid Host Operating System")
+  #     quit()
+  # else:
+  #   print("Invalid VPS().Type")
+  #   quit()
+
+  v_Gateway.updateDNS(v_VPS)
+  v_Gateway.createUser(v_VPS)
+
+  v_Proxy.updateProxy(v_VPS)
 
   if v_Host.OS == "linux":
     v_VPS.start(v_VPS.hostname)
   elif v_Host.OS == "windows":
     v_VPS.remoteStart(v_VPS.hostname, "snow", "192.168.1.5")
-
-  v_Gateway.updateDNS(v_VPS)
-  v_Gateway.createUser(v_VPS)
-
-  v_Proxy.update_Proxy(v_VPS)
 
   if v_VPS.type == "lamp_wordpress":
     v_Installer.install_wordpress_database(v_VPS.password, v_VPS.IP)

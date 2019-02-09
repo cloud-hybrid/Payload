@@ -18,12 +18,12 @@ class CMD(object):
 
   @staticmethod
   def console(command):
-    script = "console.bat"
+    script = "C:\\Users\\Development\\Documents\\Payload\\Vault\\Installation\\Source\\console.bat"
     
     content = textwrap.dedent(
 f"""
 @echo off
-start cmd /k "{command}"
+start cmd /c "{command}"
 """.strip()
     )
 
@@ -33,7 +33,7 @@ start cmd /k "{command}"
 
     time.sleep(2.5)
 
-    process = subprocess.call("console.bat", shell = True)
+    process = subprocess.call("C:\\Users\\Development\\Documents\\Payload\\Vault\\Installation\\Source\\console.bat", shell = True)
 
   @staticmethod
   def execute(command):
@@ -52,4 +52,4 @@ start cmd /c "{command}"
 
     time.sleep(2.5)
 
-    process = subprocess.call("execute.bat", shell = True)
+    subprocess.call("execute.bat", shell = True)

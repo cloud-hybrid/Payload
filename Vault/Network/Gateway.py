@@ -24,13 +24,15 @@ import textwrap
 
 from Payload.Vault.Shell.Terminal import Terminal
 
+DIRECTORY = "C:\\Windows\\Temp\\"
+
 class Gateway(object):
   def __init__(self, user, server):
     self.user = user
     self.IP = server
 
   def updateDNS(self, VPS):
-    script = "update-DNS.sh"
+    script = DIRECTORY + "update-DNS.sh"
 
     script = open(script, "w+")
     script.write(self.updateDNSScript(VPS))
@@ -38,10 +40,10 @@ class Gateway(object):
 
     time.sleep(1)
 
-    Gateway(self.user, self.IP).ttyExecute("192.168.0.5", "update-DNS.sh")
+    Gateway(self.user, self.IP).ttyExecute("192.168.0.5", DIRECTORY + "update-DNS.sh")
 
   def createUser(self, VPS):
-    script = "create-user.sh"
+    script = DIRECTORY + "create-user.sh"
 
     script = open(script, "w+")
     script.write(self.createUserScript(self, VPS))
@@ -49,7 +51,7 @@ class Gateway(object):
 
     time.sleep(1)
 
-    Gateway(self.user, self.IP).ttyExecute("192.168.0.5", "create-user.sh")
+    Gateway(self.user, self.IP).ttyExecute("192.168.0.5", DIRECTORY + "create-user.sh")
 
   @staticmethod
   def updateDNSScript(VPS):

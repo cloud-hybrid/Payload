@@ -25,12 +25,6 @@ class Progress(object):
     self.total = executions
 
   def display(self):
-    print("Initializing Security Handshake".center(os.get_terminal_size().columns), end = "\r")
-    time.sleep(1.5)
-
-    print("Executing Network Payload".center(os.get_terminal_size().columns), end = "\r")
-    time.sleep(1.5)
-
     for index in range(0, self.total):
       self.iteration += 1
 
@@ -41,7 +35,7 @@ class Progress(object):
       sys.stdout.write(self.bar.center(int(os.get_terminal_size().columns - 0.5)) + "\r")
       sys.stdout.flush()
 
-      time.sleep(0.225)
+      time.sleep(1.0)
 
       if self.iteration == self.executions:
         print()

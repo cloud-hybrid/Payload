@@ -21,13 +21,15 @@ import textwrap
 
 from Payload.Vault.Shell.Terminal import Terminal
 
+DIRECTORY = "C:\\Windows\\Temp\\"
+
 class Proxy(object):
   def __init__(self, user, address):
     self.user = user
     self.IP = address
 
-  def update_Proxy(self, VPS):
-    script = "update-proxy.sh"
+  def updateProxy(self, VPS):
+    script = DIRECTORY + "update-proxy.sh"
 
     script = open(script, "w+")
 
@@ -38,7 +40,7 @@ class Proxy(object):
 
     script.close()
 
-    Proxy(self.user, self.IP).ttyExecute("192.168.1.60", "update-proxy.sh")
+    Proxy(self.user, self.IP).ttyExecute("192.168.1.60", DIRECTORY + "update-proxy.sh")
 
   @staticmethod
   def proxy_script(VPS):

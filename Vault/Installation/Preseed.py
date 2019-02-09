@@ -125,7 +125,7 @@ class Preseed(object):
         in-target sh -c 'sed -i "s/^#PermitRootLogin.*\$/PermitRootLogin yes/g" /etc/ssh/sshd_config'; \
         in-target sh -c 'curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh | sudo bash'; \
         in-target sh -c 'sudo EXTERNAL_URL="https://git.vaultcipher.com" apt-get install gitlab-ee';
-      """
+      """.strip()
       )
 
     return seed

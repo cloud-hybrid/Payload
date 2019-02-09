@@ -14,12 +14,14 @@ import os
 import sys
 import time
 import textwrap
+import tempfile
 import subprocess
 import pkgutil
 
 from Payload.Vault.Shell.Terminal import Terminal
 from Payload.Vault.Shell.CMD import CMD
 from Payload.Vault.Installation import Source
+from Payload.Vault.Installation.Progress import Progress
 
 class Installer(object):
   def __init__(self, seed: str, ram = 512, cpu = 1, server = "192.168.1.5"):
@@ -32,39 +34,64 @@ class Installer(object):
     # self.ttyPassword = password(hashed)
 
   def install(self, type = None):
-    file_script = "create-VPS.sh"
-    # file_script_location = os.path.dirname(os.path.normpath(__file__)) + "\\" + file_script
+    Terminal("""ssh snow@192.168.1.5 -t "sudo chown snow -R /tmp" """).execute()
 
-    # double_slash = "\\" + "\\"
-
-    # file_script_location = file_script_location.replace("\\", double_slash)
+    # print(getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__))))
+    
+    file_script = "C:\\Users\\Development\\Documents\\Payload\\Vault\\Installation\\Source\\create-VPS.sh"
 
     script = open(file_script, "w+")
     script.write(self.kernal)
     script.close()
 
+
+
+    with tempfile.NamedTemporaryFile(delete = False) as fh:
+      for line in open(file_script, "rb"):
+        line = line.rstrip()
+        fh.write(line + "\n".encode())
+    fh.close()
+
+    os.rename("C:\\Users\\Development\\Documents\\Payload\\Vault\\Installation\\Source\\create-VPS.sh", str("C:\\Users\\Development\\Documents\\Payload\\Vault\\Installation\\Source\\create-VPS.sh"[:-3] + ".backup"))
+    os.rename(fh.name, "C:\\Users\\Development\\Documents\\Payload\\Vault\\Installation\\Source\\create-VPS.sh")
+
+    Installer(self).SCP(self, "C:\\Users\\Development\\Documents\\Payload\\Vault\\Installation\\Source\\create-VPS.sh", "snow", "192.168.1.5", "/var/lib/libvirt/images/")
+
     time.sleep(0.5)
-    print("Executing Injection & Installation".center(os.get_terminal_size().columns), end = "\r")
+    print("Executing Injection & Installation".center(os.get_terminal_size().columns))
     time.sleep(0.5)
 
-    ISO = "Source\\" + "Bionic-Server.iso"
+    ISO = "C:\\Users\\Development\\Documents\\Payload\\Vault\\Installation\\Source\\Bionic-Server.iso"
 
     Installer(self).SCP(self, ISO, "snow", "192.168.1.5", "/var/lib/libvirt/images/")
 
     time.sleep(5)
 
-    SEED = "preseed.cfg"
+    SEED = "C:\\Users\\Development\\Documents\\Payload\\Vault\\Installation\\Source\\preseed.cfg"
     SEED = open(SEED, "w+")
     SEED.write(self.Preseed.preseed_minimal)
     SEED.close()
 
     time.sleep(1.0)
 
-    Installer(self).SCP(self, "preseed.cfg", "snow", "192.168.1.5", "/var/lib/libvirt/images/")
+    # with tempfile.NamedTemporaryFile(delete=False) as fh:
+    #   for line in open(file_script, "w+"):
+    #     line = line.rstrip()
+    #     fh.write(line)
+    #   os.rename(file_script, file_script + '.bak')
+    #   os.rename(fh.name, filename)
 
     time.sleep(1.0)
 
-    Installer(self).ttyExecute("192.168.1.5", "create-VPS.sh")
+    Installer(self).SCP(self, "C:\\Users\\Development\\Documents\\Payload\\Vault\\Installation\\Source\\preseed.cfg", "snow", "192.168.1.5", "/var/lib/libvirt/images/")
+
+    Terminal("""ssh snow@192.168.1.5 -t "sudo chown snow -R /var/lib/libvirt/images/" """).execute()
+    Terminal("""ssh snow@192.168.1.5 -t "sudo chmod 755 /var/lib/libvirt/images/" """).execute()
+    Terminal("""ssh snow@192.168.1.5 -t "sudo chmod a+x /var/lib/libvirt/images/create-VPS.sh" """).execute()
+
+    time.sleep(15)
+    Terminal("""ssh snow@192.168.1.5 -t "sudo /var/lib/libvirt/images/create-VPS.sh" """).execute()
+    Progress(100).display()
 
   @property
   def kernal(self):
@@ -85,14 +112,12 @@ class Installer(object):
     slash = "\\"
 
     command = textwrap.dedent(
-      f"""
-      #!/bin/bash
-      virt-install {slash}
+      f"""virt-install {slash}
       --nographics {slash}
       --noautoconsole {slash}
       --name {self.Preseed.hostname} {slash}
       --ram {RAM} {slash}
-      --disk path={PATH_DEFAULT}{self.Preseed.hostname}.qcow2,size=50 {slash}
+      --disk path={PATH_DEFAULT}{self.Preseed.hostname}.qcow2,size=10 {slash}
       --location "{PATH_DEFAULT}{ISO}" {slash}
       --initrd-inject={PATH_DEFAULT}{PRESEED} {slash}
       --vcpus {CPU} {slash}
@@ -102,6 +127,7 @@ class Installer(object):
       --extra-args="console=ttyS0, 115200n8 serial"
       """
     ).strip()
+
     return command
 
   @staticmethod
@@ -112,7 +138,8 @@ class Installer(object):
     """.strip()
     )
 
-    CMD().execute(command)
+    # CMD().execute(command)
+    Terminal(command).display()
     
   @staticmethod
   def ttyExecute(server, script):
@@ -126,10 +153,7 @@ class Installer(object):
     ↳ Script --> The [os.path.dirname(os.path.normpath(__file__)) + \ + location] of the script.
     """
 
-    tty_command = textwrap.dedent(
-    f"""
-    putty -ssh -l root -pw Kn0wledge! -m {script} {server}
-    """.strip()
-    )
+    tty_command = f"putty -ssh -l snow -pw Kn0wledge! -m {script} {server}"
 
     Terminal(tty_command).display()
+    #CMD().console(tty_command)

