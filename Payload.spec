@@ -6,7 +6,7 @@ block_cipher = None
 a = Analysis(['__main__.py'],
              pathex=['C:\\Users\\Development\\Documents\\Payload'],
              binaries=[],
-             datas=[('.\\Vault\\Installation\\Source\\Bionic-Server.iso', '.')],
+             datas=[('.\\Vault\\Installation\\Source\\Bionic-Server.iso', '.'), ('.\\Vault\\Installation\\Source\\Vault.ico', '.')],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
@@ -29,4 +29,4 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           runtime_tmpdir=None,
-          console=True )
+          console=True , icon='Vault.ico')

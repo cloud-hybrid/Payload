@@ -1,15 +1,3 @@
-"""
-@Infrastructure
-  ?   Permissions      - /tmp must be writable by user running the        - Required  : (Type)
-                          - installation.
-                       - User must be a part of the KVM group.
-                       - [--disk path=...] directory must be owned by User.
-@Documentation
-  [To-Do]   - Change Preseed variable name to Injection.
-  [To-Do]   - Change @property, command to different, more descriptive name.
-  [To-Do]   - Change install() to vps()
-"""
-
 import os
 import sys
 import time
@@ -30,27 +18,37 @@ from Payload.Vault.Installation.Preseed import Preseed
 
 EXECUTIONS = {
   "VPS" : "Installer(self).VPS(self)", 
-  "ISO": "Installer(self).ISO(self)", 
-  "PRESEED" : "Installer(self).PRESEED(self)", 
-  "PERMISSIONS" : "Installer(self).PERMISSIONS(self)"
+  "ISO" : "Installer(self).ISO(self)", 
+  "PRESEED" : "Installer(self).PRESEED(self)"
 }
 
-vDIRECTORY = "/mnt/vCloud-1/Infrastructure/Virtual-Machines/"
+class Installer(object): 
+  def __init__(self, source, ram = 512, cpu = 1, server = "192.168.1.5"):
+    self.source = source
+    self.RAM = ram
+    self.vCores = cpu
+    self.Server = server
 
-class Installer(object):
+  def install(self):
+    #Installer(self).aSYNCHRONIZE(self)
+    Installer(self).ISO(self)
+    Installer(self).VPS(self)
+    Installer(self).PRESEED(self)
+    Installer(self).PERMISSIONS(self)
+
   @staticmethod
   def aSYNCHRONIZE(self):
-    STACK = Queue()
+    queue = Queue()
 
     for index, execution in EXECUTIONS.items():
-      STACK.put(execution)
+      queue.put(execution)
       vThread = Threading.Thread(target = eval(execution), args = ())
       vThread.daemon = True
       vThread.start()
 
   @staticmethod
   def VPS(self):
-    directory = "C:\\Users\\Development\\Documents\\Payload\\Vault\\Installation\\Source\\"
+    directory = str(Installer(self).windowsTEMP)
     file = "create-VPS.sh"
     script = directory + file
 
@@ -58,65 +56,48 @@ class Installer(object):
     script.write(self.kernal)
     script.close()
 
+    if os.path.exists(str(directory + file)[:-3] + ".backup"):
+      os.remove(str(directory + file)[:-3] + ".backup")
+
     with tempfile.NamedTemporaryFile(delete = False) as conversion:
       for line in open(str(directory + file), "rb") :
         line = line.rstrip()
         conversion.write(line + "\n".encode())
+
     conversion.close()
 
     os.rename(str(directory + file), str(f"{directory + file}"[:-3] + ".backup"))
-    os.rename(conversion.name, f"{directory + file}")
-    
-    Installer(self).SCP(self, f"{directory + file}", "snow", "192.168.1.5", vDIRECTORY)
+    os.rename(conversion.name, f"{str(directory + file)}")
+
+    Installer(self).SCP(f"{directory + file}", "snow", "192.168.1.5", "/mnt/vCloud-1/Infrastructure/Virtual-Machines/")
 
   @staticmethod
   def ISO(self):
-    directory = "C:\\Users\\Development\\Documents\\Payload\\Vault\\Installation\\Source\\"
-    file = "Bionic-Server.iso"
-
-    Installer(self).SCP(self, f"{directory + file}", "snow", "192.168.1.5", vDIRECTORY)
+    Installer(self).SCP(self.source, "snow", "192.168.1.5", "/mnt/vCloud-1/Infrastructure/Virtual-Machines/")
 
   @staticmethod
   def PRESEED(self):
-    directory = "C:\\Users\\Development\\Documents\\Payload\\Vault\\Installation\\Source\\"
+    directory = "C:\\Temp\\"
     file = "preseed.cfg"
-    script = directory + file
+    script = str(directory + file)
 
     script = open(script, "w+")
     script.write(Preseed("windows", "Knowledge", "192.168.1.101", Preseed.HOSTNAME).preseed_minimal)
     script.close()
   
-    Installer(self).SCP(self, f"{directory + file}", "snow", "192.168.1.5", vDIRECTORY)
+    Installer(self).SCP(f"{directory + file}", "snow", "192.168.1.5", "/mnt/vCloud-1/Infrastructure/Virtual-Machines/")
 
   @staticmethod
-  def SCP(self, source, user, client, directory):
-    command = textwrap.dedent(
-    f"""
-    scp {source} {user}@{client}:{directory}
-    """.strip()
-    )
+  def PERMISSIONS(self):
+    CMD().execute(f"""ssh snow@192.168.1.5 -t "sudo chown snow -R /mnt/vCloud-1/Infrastructure/Virtual-Machines/" """)
+    CMD().execute(f"""ssh snow@192.168.1.5 -t "sudo chmod 755 /mnt/vCloud-1/Infrastructure/Virtual-Machines/" """)
+    CMD().execute(f"""ssh snow@192.168.1.5 -t "sudo chmod a+x /mnt/vCloud-1/Infrastructure/Virtual-Machines/create-VPS.sh" """)
 
-    Terminal(command).terminal()
-  
-  def __init__(self, seed: str, ram = 512, cpu = 1, server = "192.168.1.5"):
-    self.Preseed = seed
-    self.RAM = ram
-    self.vCores = cpu
-    self.Server = server
+  @staticmethod
+  def SCP(source, user, client, directory):
+    command = f"""scp {source} {user}@{client}:{directory}"""
+    CMD().execute(command)
 
-    # self.ttyUser = user
-    # self.ttyPassword = password(hashed)
-
-  def install(self, type = None):
-    Terminal("""ssh snow@192.168.1.5 -t "sudo chown snow -R /tmp" """).execute()
-
-    # print(getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__))))
-
-    # Installer(self).ISO(self)
-    # Installer(self).PRESEED(self)
-    # Installer(self).setupPermissions(self)
-    # Installer(self).VPS(self)
-    Installer(self).aSYNCHRONIZE(self)
   @property
   def kernal(self):
     RAM = self.RAM
@@ -124,24 +105,18 @@ class Installer(object):
 
     PRESEED = "preseed.cfg"
     ISO = "Bionic-Server.iso"
-    # ISO = "/tmp/Bionic-Server.iso"
-    # ISO = os.path.dirname(os.path.normpath(__file__)) + "\\Source\\" + "Bionic-Server.iso"
-    # ISO = os.path.dirname(os.path.realpath(__file__)) + "/_Images/" + "Bionic-Server.iso"
-    # ISO = "ftp://192.168.1.60:2121/Bionic-Server.iso"
-    # ISO = "http://mirrors.rit.edu/ubuntu/dists/bionic/main/installer-amd64/"
-    MIRROR = "http://mirrors.rit.edu/ubuntu/dists/bionic/main/installer-amd64/"
-    # DISK = f"{Windows-Test}"
+    MIRROR = "archive.ubuntu.com"
 
     slash = "\\"
 
     command = textwrap.dedent(
-      f"""virt-install {slash}
+      f"""sudo virt-install {slash}
       --nographics {slash}
       --name {Preseed.HOSTNAME} {slash}
       --ram {RAM} {slash}
-      --disk path={vDIRECTORY}{Preseed.HOSTNAME}.qcow2,size=10 {slash}
-      --location "{vDIRECTORY}{ISO}" {slash}
-      --initrd-inject={vDIRECTORY}{PRESEED} {slash}
+      --disk path={"/mnt/vCloud-1/Infrastructure/Virtual-Machines/"}{Preseed.HOSTNAME}.qcow2,size=10 {slash}
+      --location "{"/mnt/vCloud-1/Infrastructure/Virtual-Machines/"}{ISO}" {slash}
+      --initrd-inject={"/mnt/vCloud-1/Infrastructure/Virtual-Machines/"}{PRESEED} {slash}
       --vcpus {CPU} {slash}
       --os-type linux {slash}
       --os-variant ubuntu18.04 {slash}
@@ -152,38 +127,17 @@ class Installer(object):
 
     return command
 
-  @staticmethod
-  def PERMISSIONS(self):
-    Terminal("""ssh snow@192.168.1.5 -t "sudo chown snow -R /tmp" """).execute()
+  @property
+  def vmDirectory(self):
+    directory = "/mnt/vCloud-1/Infrastructure/Virtual-Machines/"
+    return directory
 
-    Terminal(f"""ssh snow@192.168.1.5 -t "sudo chown snow -R {vDIRECTORY}" """).execute()
-    Terminal(f"""ssh snow@192.168.1.5 -t "sudo chmod 755 {vDIRECTORY}" """).execute()
-    Terminal(f"""ssh snow@192.168.1.5 -t "sudo chmod a+x {vDIRECTORY}create-VPS.sh" """).execute()
+  @property
+  def windowsTEMP(self):
+    directory = "C:\\Temp\\"
+    return directory
 
-  @staticmethod
-  def SCP(self, source, user, client, directory):
-    command = textwrap.dedent(
-    f"""
-    scp {source} {user}@{client}:{directory}
-    """.strip()
-    )
-
-    # CMD().execute(command)
-    Terminal(command).execute()
-    
-  @staticmethod
-  def ttyExecute(server, script):
-    """ 
-    @Description
-    ? Internal method that executes a installer()-related command on a remote location using a file either created or 
-        stored locally. The the process is executed by puTTY. puTTY should be pre-installed (create check statement), and 
-        password should be passed in by command line before program execution (when creating the Installer() object) and 
-        then be hashed.
-    @Parameters
-    ? Script --> The [os.path.dirname(os.path.normpath(__file__)) + \ + location] of the script.
-    """
-
-    tty_command = f"putty -ssh -l snow -pw Kn0wledge! -m {script} {server}"
-
-    Terminal(tty_command).display()
-    #CMD().console(tty_command)
+  @property
+  def linuxTEMP(self):
+    directory = "/tmp"
+    return directory

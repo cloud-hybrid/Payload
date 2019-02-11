@@ -18,7 +18,9 @@ class CMD(object):
 
   @staticmethod
   def console(command):
-    script = "C:\\Users\\Development\\Documents\\Payload\\Vault\\Installation\\Source\\console.bat"
+    # directory = CMD().MEI()
+    directory = CMD().windowsTEMP
+    script = "console.bat"
     
     content = textwrap.dedent(
 f"""
@@ -27,16 +29,19 @@ start cmd /c "{command}"
 """.strip()
     )
 
-    script = open(script, "w+")
+    script = open(directory + script, "w+")
     script.write(content)
     script.close()
 
     time.sleep(2.5)
 
-    process = subprocess.call("C:\\Users\\Development\\Documents\\Payload\\Vault\\Installation\\Source\\console.bat", shell = True)
+    print("CMD")
+    process = subprocess.call(directory + "console.bat", shell = True)
 
   @staticmethod
   def execute(command):
+    # directory = str(str(getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__))) + "\\"))
+    directory = "C:\\Temp\\"
     script = "execute.bat"
     
     content = textwrap.dedent(
@@ -46,10 +51,25 @@ start cmd /c "{command}"
 """.strip()
     )
 
-    script = open(script, "w+")
+    script = open(str(directory + script), "w+")
     script.write(content)
     script.close()
 
     time.sleep(2.5)
 
-    subprocess.call("execute.bat", shell = True)
+    subprocess.call(str(directory + "execute.bat"), shell = True)
+
+  @staticmethod
+  def MEI():
+    directory = str(getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__))) + "\\")
+    return str(directory)
+
+  @property
+  def windowsTEMP(self):
+    directory = "C:\\Temp\\"
+    return directory
+
+  @property
+  def linuxTEMP(self):
+    directory = "/tmp"
+    return directory
