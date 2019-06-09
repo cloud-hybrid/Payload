@@ -1,0 +1,14 @@
+# Blog Posts
+- [ ] gitHub
+  - [ ] Setup
+  - [ ] Common Commands & Workflow
+  - [ ] Cheatsheet
+- [ ] PowerDNS
+  - [ ] Introduction to DNS
+  - [ ] Reference to Documentation
+  - [ ] Keywords & Definitions
+  - [ ] Master & Slave Setup
+    - General setup with mySQL
+  - [ ] adminDNS Setup
+  - [ ] Adding Records
+    - Adding records with both adminDNS & powerDNS/Bash

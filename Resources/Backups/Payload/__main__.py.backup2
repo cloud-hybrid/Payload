@@ -1,0 +1,77 @@
+import os
+import sys
+import subprocess
+import textwrap
+import argparse
+import time
+
+from tkinter import *
+
+import tkinter.ttk as ttk
+from tkinter.ttk import *
+
+from tkinter.font import Font
+
+import threading
+
+from argparse import ArgumentParser
+from subprocess import Popen, PIPE, CREATE_NEW_CONSOLE
+from subprocess import *
+
+from Payload.Vault.Installation.Progress import Progress
+from Payload.Vault.Installation.Preseed import Preseed
+from Payload.Vault.Installation.Installer import Installer
+from Payload.Vault.Shell.Terminal import Terminal
+from Payload.Vault.Shell.Display import Display
+from Payload.Vault.Shell.CMD import CMD
+from Payload.Vault.Network.Host import Host
+from Payload.Vault.Network.VPS import VPS
+from Payload.Vault.Network.Gateway import Gateway
+from Payload.Vault.Network.Proxy import Proxy
+from Payload.Vault.Database.Connection import Connection
+from Payload.Vault.Network.Scanner import Scanner
+
+from Payload.Vault.GUI.MainWindow import MainWindow
+
+vDIRECTORY = "/mnt/Virtual-Machines/"
+
+def resource_path(relative_path):
+  base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+  return os.path.join(base_path, relative_path)
+
+def network_preconfiguration_scan(address_space):
+  '''
+  Documentation:
+    @Parameters
+      ↳   address_space   - Local IP with CIDR suffixed.    - Required : (String)
+                          | - Example: "192.168.1.0/24
+
+    @Return
+      ↳   online_nodes    - List of Node IP address.        - Type : (Array)
+  '''
+  online_nodes = Scanner(str(address_space)).scan()
+  return online_nodes
+
+def main():
+  preconfiguration_check = str(input("Enable Network Preconfiguration Scan? (Y/N)" + "\n")).lower()
+
+  if preconfiguration_check == "y":
+    online_nodes = network_preconfiguration_scan(input("Network CIDR Address: " + "\n"))
+    print(online_nodes)
+  else:
+    pass
+
+  interface = Tk()
+  text = Text(interface)
+  default_font = Font(family = "Times", size = 24)
+  text.configure(font = default_font)
+
+  display = MainWindow()
+  interface.config(menu = display.menubar)
+  # interface.geometry("425x500")
+
+  interface.mainloop()
+
+
+if __name__ == "__main__":
+  main()

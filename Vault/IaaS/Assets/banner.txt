@@ -1,0 +1,13 @@
+╔═════════════════════════╤═══════════════════╤═══════════════════════╗
+║                         │ Payload: KVM-Host │                       ║
+║┌────────────────────────┴───────────────────┴──────────────────────┐║
+╟┤   This system is for the use of authorized users only. Usage of   ├╢
+╟┤     this system is monitored and recorded by system personnel.    ├╢
+╟┤                                                                   ├╢
+╟┤     Anyone using this system expressly consents to monitoring     ├╢
+╟┤      and is advised that if such monitoring reveals possible      ├╢
+╟┤         criminal activity, system personnel will provide          ├╢
+╟┤                  evidence from such monitoring to                 ├╢
+╟┤                      law enforcement officials.                   ├╢
+║└───────────────────────────────────────────────────────────────────┘║
+╚═════════════════════════════════════════════════════════════════════╝

@@ -1,0 +1,144 @@
+#!/usr/bin/env python
+
+"""
+Summary: TDB
+
+Description: TBD
+
+@Dependencies
+  - TBD
+
+@Objects
+  ↳ TBD
+
+@General
+  - Contact: development.cloudhybrid@gmail.com (Snow)
+  - Documentation: https://github.com/cloud-hybrid/Payload
+  - Website: https://vaultcipher.com/
+  - tempfile.mktemp(): https://docs.python.org/3/library/tempfile.html
+
+@Development
+"""
+
+import os
+import sys
+import time
+import shlex
+import textwrap
+import threading
+import tempfile
+import subprocess
+
+try:
+  from cStringIO import StringIO as BytesIO
+except ImportError:
+  from io import BytesIO
+
+import pycdlib
+
+class WindowsMaster(object):
+  def __init__(self):
+    pass
+
+  def createBootableUSB(self):
+    """ Ensure USB has been inserted before execution """
+
+    command = "diskpart"
+
+    self.executeDiskPartition(command)
+    # process = subprocess.Popen(
+    #   ['runas', '/noprofile', '/user:Development', self.executeDiskPartition(command)]
+    # )
+    # print(output)
+
+  @staticmethod
+  def resource_path(relative_path):
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
+  @staticmethod
+  def executeDiskPartition(command):
+    # directory = str(str(getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__))) + "\\"))
+    directory = "C:\\Temp\\"
+    script = "console.bat"
+    
+    content = textwrap.dedent(
+      f"""
+      @echo off
+      start cmd /c diskpart && list part
+      """.strip()
+    )
+
+    script = open(str(directory + script), "w+")
+    script.write(content)
+    script.close()
+
+    time.sleep(2.5)
+
+    subprocess.call(str(directory + "console.bat"), shell = True)
+
+  @staticmethod
+  def openComputerManagement():
+    subprocess.Popen(
+      "C:\\WINDOWS\\system32\\compmgmt.msc",
+      shell = True
+    )
+    
+  @staticmethod
+  def createBootableISO():
+    vps_image = resource_path("Bionic-Server.iso")
+
+    # Check that there are enough command-line arguments.
+    if len(sys.argv) != 1:
+      print('Usage: %s' % (sys.argv[0]))
+      sys.exit(1)
+
+    # Create a new PyCdlib object.
+    iso = pycdlib.PyCdlib()
+
+    # Create a new ISO, accepting all of the defaults.
+    iso.new()
+
+    # Add a new file to the ISO, with the contents coming from the file object.
+    # This file will be used as the boot file on the bootable ISO.
+    image = str.encode(vps_image)
+    iso.add_fp(BytesIO(image), len(image), '/BOOT.;1')
+
+    # Once the bootable file is on the ISO, we need to link it to the boot catalog
+    # by calling add_eltorito.
+    iso.add_eltorito('/BOOT.;1', bootcatfile='/BOOT.CAT;1')
+
+    # Write out the ISO to the file called 'eltorito.iso'.  This will fully master
+    # the ISO, making it bootable.
+    iso.write('eltorito.iso')
+
+    # Close the ISO object.  After this call, the PyCdlib object has forgotten
+    # everything about the previous ISO, and can be re-used.
+    iso.close()
+
+  @property
+  def PIPDependencies(self):
+    property = {
+      "ISO Package" : "pycdlib",
+      "USB Access" : "pyusb"
+    }
+
+    return property
+
+  @property
+  def Programs(self):
+    property = {
+      "GZIP" : "pycdlib"
+    }
+
+    return property
+
+
+def main():
+  master = WindowsMaster()
+  master.openComputerManagement()
+  # argumentss = input()
+  # print(shlex.split(argumentss))
+
+if __name__ == "__main__":
+  main()

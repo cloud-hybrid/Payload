@@ -1,0 +1,167 @@
+<PayloadButton>:
+    # color: 255, 255, 255, 1
+    
+    background_color: 1, 1, 1, 1
+
+    on_enter: self.background_normal = "atlas://data/images/defaulttheme/button"
+    on_enter: self.background_color = 1, 1, 1, 0.75
+    on_leave: self.background_normal = "atlas://data/images/defaulttheme/button"
+    on_leave: self.background_color = 1, 1, 1, 1
+    on_press: self.background_normal = "atlas://data/images/defaulttheme/button"
+    on_press: self.background_color = 1 / 255, 1 / 255, 1 / 255, 0.1
+    on_press: self.color = (1, 1, 1, 0.25)
+    on_release: self.background_color = 1, 1, 1, 1
+    on_release: self.background_normal = "atlas://data/images/defaulttheme/button"
+
+    size: 150, 0.0
+    size_hint: None, 1.0
+
+MasterWindow:
+    size_hint: 1.0, 1.0
+    canvas.before:
+        Color:
+            rgba: 50 / 255, 50 / 255, 50 / 255, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<PayloadActionButton>:
+    background_color: 1, 1, 1, 0
+
+    on_enter: self.background_normal = "atlas://data/images/defaulttheme/button"
+    on_enter: self.background_color = 1, 1, 1, 0.25
+    on_leave: self.background_normal = "atlas://data/images/defaulttheme/button"
+    on_press: self.background_normal = "atlas://data/images/defaulttheme/button"
+    on_press: self.background_color = 1, 1, 1, 0
+    on_press: self.color = (1, 1, 1, 1)
+    on_release: self.background_color = 1, 1, 1, 0
+    on_release: self.background_normal = "atlas://data/images/defaulttheme/button"
+
+<Menu>:
+    pos_hint: {'top' : 1}
+    height: 50
+    padding: [10, 0, 10, 0]
+    # padding: 0, 0, 0, 0
+    # spacing: 100
+    ActionView:
+        ActionPrevious:
+            title: " " * 3 + "Snow"
+            with_previous: True
+            app_icon: 'Snow.png'
+            app_icon_width: 400
+            app_icon_height: 500
+            on_press: self.background_color = 1, 1, 1, 0
+            on_press: self.background_color = 1, 1, 1, 0
+        ActionOverflow:
+        PayloadActionGroup:
+            text: 'File' 
+            mode: 'spinner'
+            PayloadActionButton:
+                important: True
+                text: 'Important'
+                background_color: 1, 1, 1, 1
+                size_hint: None, None
+                size: 100, 50
+                on_leave: self.background_color = 1, 1, 1, 1
+            PayloadActionButton:
+                text: 'Option 2'
+                background_color: 1, 1, 1, 1
+                size_hint: None, None
+                size: 100, 50
+                on_leave: self.background_color = 1, 1, 1, 1
+            PayloadActionButton:
+                text: 'Option 3'
+                background_color: 1, 1, 1, 1
+                size_hint: None, None
+                size: 100, 50
+                on_leave: self.background_color = 1, 1, 1, 1
+            PayloadActionButton:
+                text: 'Option 4'
+                background_color: 1, 1, 1, 1
+                size_hint: None, None
+                size: 100, 50
+                on_leave: self.background_color = 1, 1, 1, 1
+
+        PayloadActionGroup:
+            text: 'Edit' 
+            mode: 'spinner'
+            PayloadActionButton:
+                text: 'Option 1'
+                background_color: 1, 1, 1, 1
+                size_hint: None, None
+                size: 100, 50
+                on_leave: self.background_color = 1, 1, 1, 1
+            PayloadActionButton:
+                text: 'Option 2'
+                background_color: 1, 1, 1, 1
+                size_hint: None, None
+                size: 100, 50
+                on_leave: self.background_color = 1, 1, 1, 1
+            PayloadActionButton:
+                text: 'Option 3'
+                background_color: 1, 1, 1, 1
+                size_hint: None, None
+                size: 100, 50
+                on_leave: self.background_color = 1, 1, 1, 1
+            PayloadActionButton:
+                text: 'Option 4'
+                background_color: 1, 1, 1, 1
+                size_hint: None, None
+                size: 100, 50
+                on_leave: self.background_color = 1, 1, 1, 1
+
+        PayloadActionGroup:
+            text: 'Tools' 
+            mode: 'spinner'
+            PayloadActionButton:
+                text: 'Tool 1'
+                background_color: 1, 1, 1, 1
+                size_hint: None, None
+                size: 100, 50
+                on_leave: self.background_color = 1, 1, 1, 1
+            PayloadActionButton:
+                text: 'Tool 2'
+                background_color: 1, 1, 1, 1
+                size_hint: None, None
+                size: 100, 50
+                on_leave: self.background_color = 1, 1, 1, 1
+            PayloadActionButton:
+                text: 'Tool 3'
+                background_color: 1, 1, 1, 1
+                size_hint: None, None
+                size: 100, 50
+                on_leave: self.background_color = 1, 1, 1, 1
+            PayloadActionButton:
+                text: 'Tool 4'
+                background_color: 1, 1, 1, 1
+                size_hint: None, None
+                size: 100, 50
+                on_leave: self.background_color = 1, 1, 1, 1
+
+        PayloadActionGroup:
+            text: 'Help' 
+            mode: 'spinner'
+            PayloadActionButton:
+                text: 'Option 1'
+                background_color: 1, 1, 1, 1
+                size_hint: None, None
+                size: 100, 50
+                on_leave: self.background_color = 1, 1, 1, 1
+            PayloadActionButton:
+                text: 'Option 2'
+                background_color: 1, 1, 1, 1
+                size_hint: None, None
+                size: 100, 50
+                on_leave: self.background_color = 1, 1, 1, 1
+            PayloadActionButton:
+                text: 'Option 3'
+                background_color: 1, 1, 1, 1
+                size_hint: None, None
+                size: 100, 50
+                on_leave: self.background_color = 1, 1, 1, 1
+            PayloadActionButton:
+                text: 'Option 4'
+                background_color: 1, 1, 1, 1
+                size_hint: None, None
+                size: 100, 50
+                on_leave: self.background_color = 1, 1, 1, 1
