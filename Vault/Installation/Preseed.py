@@ -25,12 +25,123 @@ class Preseed(object):
     return hostname
 
   @property
+  def preseed_sql(self):
+    property = textwrap.dedent(
+      f"""
+      d-i debconf/priority string critical
+      d-i auto-install/enable boolean true
+
+      # --- Language Settings --- #
+      d-i debian-installer/language string en
+      d-i debian-installer/country string US
+      d-i debian-installer/locale string en_US
+
+      # --- Keyboard Overwrites --- #
+      d-i console-setup/ask_detect boolean false
+      d-i keyboard-configuration/xkb-keymap select us
+
+      # --- Network Configuration --- #
+      d-i netcfg/choose_interface select auto
+      d-i netcfg/disable_autoconfig boolean true
+      d-i netcfg/dhcp_failed note
+      d-i netcfg/dhcp_options select Configure network manually
+      # ------ > Static Network Settings
+      d-i netcfg/get_ipaddress string {self.IP}
+      d-i netcfg/get_netmask string 255.255.0.0
+      d-i netcfg/get_gateway string 192.168.1.1
+      d-i netcfg/get_nameservers string 192.168.1.1
+      d-i netcfg/confirm_static boolean true
+      # ------ > Hostname
+      d-i netcfg/get_hostname string {self.hostname}
+      d-i netcfg/get_domain string vaultcipher.com
+
+      # --- Prevent Wireless Prompt --- #
+      d-i netcfg/wireless_wep string
+
+      # --- Mirrors --- #
+      d-i mirror/country string manual
+      d-i mirror/http/hostname string us.archive.ubuntu.com
+      d-i mirror/http/directory string /ubuntu
+      d-i mirror/http/proxy string
+
+      # --- Account Setup --- #
+      # ------ > Root
+      d-i passwd/root-login boolean true
+      d-i passwd/root-password password {self.password}
+      d-i passwd/root-password-again password {self.password}
+      # ------ > Default User
+      d-i passwd/user-fullname string {self.user}
+      d-i passwd/username string {self.user}
+      d-i passwd/user-password password {self.password}
+      d-i passwd/user-password-again password {self.password}
+      # ------ > Allow Weak Password
+      d-i user-setup/allow-password-weak boolean true
+      # ------ > Home Encryption
+      d-i user-setup/encrypt-home boolean false
+
+      # --- Time --- #
+      d-i clock-setup/utc boolean true
+      d-i time/zone string US/Eastern
+      d-i clock-setup/ntp boolean true
+
+      # --- Disk Partitioning --- #
+      d-i partman-auto/method string lvm
+      d-i partman-lvm/device_remove_lvm boolean true
+      d-i partman-md/device_remove_md boolean true
+      d-i partman-lvm/confirm boolean true
+      d-i partman-lvm/confirm_nooverwrite boolean true
+      d-i partman-auto/choose_recipe select atomic
+      d-i partman-partitioning/confirm_write_new_label boolean true
+      d-i partman/choose_partition select finish
+      d-i partman/confirm boolean true
+      d-i partman/confirm_nooverwrite boolean true
+      d-i partman-md/confirm boolean true
+      d-i partman-partitioning/confirm_write_new_label boolean true
+      d-i partman/choose_partition select finish
+      d-i partman/confirm boolean true
+      d-i partman/confirm_nooverwrite boolean true
+
+      # --- Package Installations --- #
+      tasksel tasksel/first multiselect lamp-server
+      d-i pkgsel/include string openssh-server net-tools curl software-properties-common wget curl
+
+      # --- Update Policy --- #
+      d-i pkgsel/update-policy select none
+      d-i pkgsel/updatedb boolean false
+
+      # --- Post Setup Configuration --- #
+      d-i grub-installer/only_debian boolean true
+      d-i grub-installer/with_other_os boolean true
+
+      # SQL Configuration
+      mysql-server-5.7 mysql-server/root_password_again {self.password}
+      mysql-server-5.7 mysql-server/root_password {self.password}
+      mysql-server-5.7 mysql-server/error_setting_password error
+      mysql-server-5.7 mysql-server-5.7/postrm_remove_databases boolean false
+      mysql-server-5.7 mysql-server-5.7/start_on_boot boolean true
+      mysql-server-5.7 mysql-server-5.7/nis_warning note
+      mysql-server-5.7 mysql-server-5.7/really_downgrade boolean false
+      mysql-server-5.7 mysql-server/password_mismatch error
+      mysql-server-5.7 mysql-server/no_upgrade_when_using_ndb error
+
+      # --- Reboot --- #
+      d-i finish-install/reboot_in_progress note
+
+      # --- Late-Stage Commands --- #
+      d-i preseed/late_command string in-target sed -i "s/^#PermitRootLogin.*\$/PermitRootLogin yes/g" /etc/ssh/sshd_config; \
+        in-target wget -O /tmp/provision.sh "https://unixvault.com/provision_minimal.sh" --no-check-certificate; \
+        in-target chmod +x /tmp/provision.sh; in-target /bin/bash /tmp/provision.sh {self.user}; 
+      """
+    ).strip()
+    return property
+
+  @property
   def preseed(self):
     seed = textwrap.dedent(
       f"""
       #---------╔════════════════════╦═══════════════════════════════╗---------#
       #---------║      Developer     ║      © Vault Cipher LLC.      ║---------#
-      #---------║   ──────────────   ║ ───────────────────────────── ║---------#
+      #---------║   ──────────────   ║   ─────────────────────────   ║---------#
       #---------║  Jacob B. Sanders  ║    https://vaultcipher.com    ║---------#
       #---------╚════════════════════╩═══════════════════════════════╝---------#
 
@@ -443,6 +554,12 @@ class Preseed(object):
   def preseed_minimal(self):
     minimal = textwrap.dedent(
       f"""
+      #---------╔════════════════════╦═══════════════════════════════╗---------#
+      #---------║      Developer     ║      © Vault Cipher LLC.      ║---------#
+      #---------║   ──────────────   ║   ─────────────────────────   ║---------#
+      #---------║  Jacob B. Sanders  ║    https://vaultcipher.com    ║---------#
+      #---------╚════════════════════╩═══════════════════════════════╝---------#
+      
       d-i debconf/priority string critical
       d-i auto-install/enable boolean true
 

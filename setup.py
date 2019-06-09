@@ -8,7 +8,7 @@ setuptools.setup(
   version="0.0.1",
   author="Jacob B. Sanders",
   author_email="development.cloudhybrid@gmail.com",
-  description="Production Server Provisioning Tool",
+  description="IaaS Automation and Management Tools",
   long_description=long_description,
   long_description_content_type="text/markdown",
   url="https://github.com/cloud-hybrid/Cloud",

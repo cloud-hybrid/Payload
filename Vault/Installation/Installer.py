@@ -1,6 +1,8 @@
 import os
+import pwd
 import sys
 import time
+import shlex
 import textwrap
 import tempfile
 import subprocess
@@ -23,18 +25,18 @@ EXECUTIONS = {
 }
 
 class Installer(object): 
-  def __init__(self, source, ram = 512, cpu = 1, server = "192.168.1.5"):
+  def __init__(self, source, ram = 512, cpu = 1):
     self.source = source
     self.RAM = ram
     self.vCores = cpu
-    self.Server = server
+    self.local_user = str(pwd.getpwuid(os.getuid())[0])
 
-  def install(self):
+  def install(self, vps_type, vps_user, vps_password, vps_ip):
     #Installer(self).aSYNCHRONIZE(self)
     Installer(self).ISO(self)
     Installer(self).VPS(self)
-    Installer(self).PRESEED(self)
-    Installer(self).PERMISSIONS(self)
+    Installer(self).PRESEED(self, vps_type, vps_user, vps_password, vps_ip)
+    Installer(self).VMDIRECTORY(self)
 
   @staticmethod
   def aSYNCHRONIZE(self):
@@ -48,7 +50,7 @@ class Installer(object):
 
   @staticmethod
   def VPS(self):
-    directory = str(Installer(self).windowsTEMP)
+    directory = str(Installer(self).linuxTEMP)
     file = "create-VPS.sh"
     script = directory + file
 
@@ -69,29 +71,97 @@ class Installer(object):
     os.rename(str(directory + file), str(f"{directory + file}"[:-3] + ".backup"))
     os.rename(conversion.name, f"{str(directory + file)}")
 
-    Installer(self).SCP(f"{directory + file}", "snow", "192.168.1.5", "/mnt/vCloud-1/Infrastructure/Virtual-Machines/")
+    # Installer(self).SCP(f"{directory + file}", "snow", "192.168.0.1", "/mnt/Virtual-Machines/")
+    command = f"sudo cp {directory + file} /mnt/Virtual-Machines/"
+    subprocess.call(shlex.split(command),
+      shell = False,
+      stdout = subprocess.PIPE,
+      stderr = subprocess.PIPE,
+      universal_newlines = True)
 
   @staticmethod
   def ISO(self):
-    Installer(self).SCP(self.source, "snow", "192.168.1.5", "/mnt/vCloud-1/Infrastructure/Virtual-Machines/")
+    # Installer(self).SCP(self.source, "snow", "192.168.0.1", "/mnt/Virtual-Machines/")
+    print("Copying ISO")
+    print(self.source)
+    command = f"sudo cp {self.source} /mnt/Virtual-Machines/"
+    subprocess.call(shlex.split(command),
+      shell = False,
+      stdout = subprocess.PIPE,
+      stderr = subprocess.PIPE,
+      universal_newlines = True)
 
+    print("Finished")
+      
   @staticmethod
-  def PRESEED(self):
-    directory = "C:\\Temp\\"
+  def PRESEED(self, vps_type, vps_user, vps_password, vps_ip):
+    directory = self.linuxTEMP
     file = "preseed.cfg"
     script = str(directory + file)
 
     script = open(script, "w+")
-    script.write(Preseed("windows", "Knowledge", "192.168.1.101", Preseed.HOSTNAME).preseed_minimal)
+
+    if vps_type == "Basic":
+      script.write(Preseed(vps_user, vps_password, vps_ip, Preseed.HOSTNAME).preseed_basic)
+    elif vps_type == "LAMP":
+      script.write(Preseed(vps_user, vps_password, vps_ip, Preseed.HOSTNAME).preseed_lamp)
+    elif vps_type == "Wordpress":
+      script.write(Preseed(vps_user, vps_password, vps_ip, Preseed.HOSTNAME).preseed_lamp_wordpress)
+    elif vps_type == "SQL":
+      script.write(Preseed(vps_user, vps_password, vps_ip, Preseed.HOSTNAME).preseed_sql)
+    else:
+      script.write(Preseed(vps_user, vps_password, vps_ip, Preseed.HOSTNAME).preseed_minimal)
+    
     script.close()
-  
-    Installer(self).SCP(f"{directory + file}", "snow", "192.168.1.5", "/mnt/vCloud-1/Infrastructure/Virtual-Machines/")
+
+    command = f"sudo cp {directory + file} /mnt/Virtual-Machines/"
+    subprocess.call(shlex.split(command),
+      shell = False,
+      stdout = subprocess.PIPE,
+      stderr = subprocess.PIPE,
+      universal_newlines = True)
+
+    # Installer(self).SCP(f"{directory + file}", "snow", "192.168.0.1", "/mnt/Virtual-Machines/")
+
+  @staticmethod
+  def VMDIRECTORY(self):
+    if os.path.exists("mnt/Virtual-Machines"):
+      pass
+    else:
+      command = "sudo mkdir /mnt/Virtual-Machines/"
+      subprocess.call(shlex.split(command),
+        shell = False,
+        stdout = subprocess.PIPE,
+        stderr = subprocess.PIPE,
+        universal_newlines = True)
+    
+    command = f"sudo chown {self.local_user} -R /mnt/Virtual-Machines/"
+    subprocess.call(shlex.split(command),
+      shell = False,
+      stdout = subprocess.PIPE,
+      stderr = subprocess.PIPE,
+      universal_newlines = True)
+
+    command = f"sudo chmod 755 /mnt/Virtual-Machines/"
+    subprocess.call(shlex.split(command),
+      shell = False,
+      stdout = subprocess.PIPE,
+      stderr = subprocess.PIPE,
+      universal_newlines = True)
+
+    command = f"sudo chmod a+x /mnt/Virtual-Machines/create-VPS.sh"
+    subprocess.call(shlex.split(command),
+      shell = False,
+      stdout = subprocess.PIPE,
+      stderr = subprocess.PIPE,
+      universal_newlines = True)
 
   @staticmethod
   def PERMISSIONS(self):
-    CMD().execute(f"""ssh snow@192.168.1.5 -t "sudo chown snow -R /mnt/vCloud-1/Infrastructure/Virtual-Machines/" """)
-    CMD().execute(f"""ssh snow@192.168.1.5 -t "sudo chmod 755 /mnt/vCloud-1/Infrastructure/Virtual-Machines/" """)
-    CMD().execute(f"""ssh snow@192.168.1.5 -t "sudo chmod a+x /mnt/vCloud-1/Infrastructure/Virtual-Machines/create-VPS.sh" """)
+    # CMD().execute(f"""ssh snow@192.168.0.1 -t "sudo chown snow -R /mnt/Virtual-Machines/" """)
+    # CMD().execute(f"""ssh snow@192.168.0.1 -t "sudo chmod 755 /mnt/Virtual-Machines/" """)
+    # CMD().execute(f"""ssh snow@192.168.0.1 -t "sudo chmod a+x /mnt/Virtual-Machines/create-VPS.sh" """)
+    pass
 
   @staticmethod
   def SCP(source, user, client, directory):
@@ -105,7 +175,7 @@ class Installer(object):
 
     PRESEED = "preseed.cfg"
     ISO = "Bionic-Server.iso"
-    MIRROR = "archive.ubuntu.com"
+    MIRROR = "us.archive.ubuntu.com"
 
     slash = "\\"
 
@@ -114,9 +184,9 @@ class Installer(object):
       --nographics {slash}
       --name {Preseed.HOSTNAME} {slash}
       --ram {RAM} {slash}
-      --disk path={"/mnt/vCloud-1/Infrastructure/Virtual-Machines/"}{Preseed.HOSTNAME}.qcow2,size=10 {slash}
-      --location "{"/mnt/vCloud-1/Infrastructure/Virtual-Machines/"}{ISO}" {slash}
-      --initrd-inject={"/mnt/vCloud-1/Infrastructure/Virtual-Machines/"}{PRESEED} {slash}
+      --disk path={"/mnt/Virtual-Machines/"}{Preseed.HOSTNAME}.qcow2,size=10 {slash}
+      --location "{"/mnt/Virtual-Machines/"}{ISO}" {slash}
+      --initrd-inject={"/mnt/Virtual-Machines/"}{PRESEED} {slash}
       --vcpus {CPU} {slash}
       --os-type linux {slash}
       --os-variant ubuntu18.04 {slash}
@@ -127,9 +197,27 @@ class Installer(object):
 
     return command
 
+  @staticmethod
+  def install_wordpress_database(vps_password, vps_ip):
+    tty_command = textwrap.dedent(
+    f"""
+    echo y | plink -ssh {vps_ip} -l root -pw {vps_password} "exit"
+    """.strip()
+    )
+    Terminal(tty_command).execute()
+
+    time.sleep(1)
+
+    tty_command = textwrap.dedent(
+    f"""
+    echo y | plink -ssh {vps_ip} -l root -pw {vps_password} "sudo /var/www/database.sh"
+    """.strip()
+    )
+    Terminal(tty_command).execute()
+
   @property
   def vmDirectory(self):
-    directory = "/mnt/vCloud-1/Infrastructure/Virtual-Machines/"
+    directory = "/mnt/Virtual-Machines/"
     return directory
 
   @property
@@ -139,5 +227,5 @@ class Installer(object):
 
   @property
   def linuxTEMP(self):
-    directory = "/tmp"
-    return directory
+    directory = "/tmp/"
+    return directory  

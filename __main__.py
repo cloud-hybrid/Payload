@@ -1,16 +1,56 @@
+#!/usr/bin/python3.7
+# ........................................................................... #
+# (c) 2019, Jacob B. Sanders <development.cloudhybrid@gmail.com>
+# GNU General Public License v3.0: https://opensource.org/licenses/GPL-3.0
+
+METADATA = {
+  "Module" : "VirtualizationHost",
+  "Package" : "IaaS",
+  "Version" : "0.2",
+  "Status": "beta"
+  }
+
+DOCUMENTATION = """
+Module: VirtualizationHost
+Author: Jacob B. Sanders (@cloud-hybrid)
+Summary: Module used for configuring KVM-capable hosts.
+Documentation: https://vaultcipher.com/
+
+@Description:
+ - TBD
+
+@Dependencies
+  - tkinter
+  - memory_profiler
+  - libmysqlclient-dev
+  - mysql-connector-python-rf
+
+@Development
+
+"""
+
+EXAMPLES = """
+- TBD
+"""
+
 import os
 import sys
+import shlex
 import subprocess
 import textwrap
 import argparse
-import time
 
-from tkinter import *
+import cProfile
+import threading
+import pstats
+import io
 
+# from memory_profiler import profile
+
+# from tkinter import *
 from argparse import ArgumentParser
-from subprocess import Popen, PIPE, CREATE_NEW_CONSOLE
-from subprocess import *
 
+from Payload.Vault.IaaS.ExecutionHost import ExecutionHost
 from Payload.Vault.Installation.Progress import Progress
 from Payload.Vault.Installation.Preseed import Preseed
 from Payload.Vault.Installation.Installer import Installer
@@ -21,149 +61,216 @@ from Payload.Vault.Network.Host import Host
 from Payload.Vault.Network.VPS import VPS
 from Payload.Vault.Network.Gateway import Gateway
 from Payload.Vault.Network.Proxy import Proxy
+from Payload.Vault.Database.Connection import Connection
+from Payload.Vault.Network.Scanner import Scanner
 
-vDIRECTORY = "/mnt/vCloud-1/Infrastructure/Virtual-Machines/"
+vDIRECTORY = "/mnt/Virtual-Machines/"
 
 def resource_path(relative_path):
   base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
   return os.path.join(base_path, relative_path)
 
 def main():
-  source = resource_path("Bionic-Server.iso")
+  vps_image = resource_path("Bionic-Server.iso")
 
-  v_Host = Host(input.h_User, input.h_IP, input.h_OS, input.Gmail)
-  v_VPS = VPS(input.v_User, input.v_Password, input.v_IP, input.v_Type, input.v_RAM, input.v_CPU, input.Domain, input.SSL)
-  v_VPS.hostname = v_VPS.name 
-  v_Gateway = Gateway(input.g_User, input.g_IP)
-  v_Proxy = Proxy(input.p_User, input.p_IP)
-  v_Preseed = Preseed(v_VPS.user, v_VPS.password, v_VPS.IP, Preseed.HOSTNAME)
-  Preseed.HOSTNAME = v_VPS.hostname
+  # database = Connection(
+  #   input.sql_username, 
+  #   input.sql_password,
+  #   input.sql_server,
+  #   input.sql_database
+  # )
 
-  v_Installer = Installer(source, v_VPS.RAM, v_VPS.CPUs, v_VPS.IP)
-  v_Installer.install()
+  # result = database.queryAll()
+  # subnet = database.incrementIP()
+  # VPS_IP = database.network + str(subnet)
 
-  CMD().execute(f"""ssh snow@192.168.1.5 -t "sudo {vDIRECTORY}create-VPS.sh" """)
+  setup = input("Run First Time Setup on the Virtualization Host? (Y/N): ")
+  if str(setup).upper() == "Y":
+    host = ExecutionHost(
+      username = shell_input.virtualization_host_username,
+      email = shell_input.virtualization_host_email,
+      password = shell_input.virtualization_host_password,
+      address = shell_input.virtualization_host_address
+    )
 
-  v_Gateway.updateDNS(v_VPS)
-  v_Gateway.createUser(v_VPS)
+    if host.executing_platform == "Linux" or host.executing_platform == "Darwin" and host.sshKeyCheck() == True:
+      host.sshCopyID()
+    elif host.sshKeyCheck() == False:
+      host.sshKeyGeneration()
+      time.sleep(3)
+      host.sshCopyID()
 
-  v_Proxy.updateProxy(v_VPS)
+    print("Host Cores: " + str(host.Cores))
+    print("Virtualization Capable: " + str(host.checkVirtualizationCompatability()))
+    print("Acceleration Capable: " + str(host.checkAccelerationCompatability()))
 
-  if v_Host.OS == "linux":
-    v_VPS.start(v_VPS.hostname)
+    print("Updated: " + str(host.updateVirtualizationHost()))
+    print("Upgraded: " + str(host.upgradeVirtualizationHost()))
 
-  if v_VPS.type == "lamp_wordpress":
-    v_Installer.install_wordpress_database(v_VPS.password, v_VPS.IP)
+    print("KVM Package Installed: " + str(host.installVirtualizationSoftware()))
+    print("KVM Package Enabled: " + str(host.enableVirtualizationSoftware()))
 
-  if v_VPS.FQDN != "N/A" and v_VPS.FQDN != None:
-    command = f"""ssh {v_Proxy.user}@{v_Proxy.IP} "sudo wget -O /tmp/add-domain.py 'https://unixvault.com/proxy/add-domain.py' --no-check-certificate && sudo chmod +x /tmp/add-domain.py && sudo /tmp/add-domain.py {v_VPS.hostname} {v_VPS.FQDN}" """
-    Terminal(command).run()
 
-  # if v_Host.OS == "Windows":
-  #   v_Host.email_private_key_windows(v_Host)
+  # print("Host Network Interfaces: " + str(host.NetworkInterfaces))
+
+  # print("Network Configuration: " + str(host.NetworkConfiguration))
+  # if host.NetworkConfiguration == False:
+  #   host.configureNetworkBridge()
+
+  # print("Creating RSA and Directory Files: " + str(host.createRSAKey()))
+  # print("Setting .SSH Permissions: " + str(host.setSSHPermissions()))
+
   # else:
-  #   v_Host.email_private_key(v_Host)
+  #   if Scanner.pingNode(input.remote_host_IP):
+  #     pass
+  #   else:
+  #     sys.exit("Failure: Remote Host Unreachable")
+
+    # remote_host = Host(
+    #   user = input.remote_host_user, 
+    #   password = input.remote_host_password,
+    #   server = input.remote_host_IP, 
+    #   local_OS = input.local_host_OS,
+    #   remote_OS = input.remote_host_OS,
+    #   email_sender = input.email[0],
+    #   email_recipient = input.email[2]
+    # ) 
+
+  # vps_type = "SQL"
+
+  # if vps_type == "SQL":
+    # ip_address = input("IP Address: ")
+    # ip_address = "192.168.0.80"
+
+    # vps = VPS(
+    #   "sql", 
+    #   "Kn0wledge!", 
+    #   ip_address, 
+    #   "SQL", 
+    #   input.vps_RAM, 
+    #   input.vps_CPU, 
+    #   input.Domain, 
+    #   input.SSL,
+    #   hostname = "SQL-Server")
+
+  # vps = VPS(
+  #   input.vps_username, 
+  #   input.vps_password, 
+  #   VPS_IP, 
+  #   input.vps_type, 
+  #   input.vps_RAM, 
+  #   input.vps_CPU, 
+  #   input.Domain, 
+  #   input.SSL)
+
+  # database.addVPS(
+  #   input.vps_username, 
+  #   input.vps_username, 
+  #   input.vps_type,
+  #   VPS_IP, 
+  #   input.vps_RAM, 
+  #   input.vps_CPU, 
+  #   vps.hostname, 
+  #   input.SSL, 
+  #   input.email[2]
+  # )
   
-  v_Host.email_private_key_windows(v_Host)
+  # database.disconnect()
 
+  #Preseed.HOSTNAME = vps.hostname
+  
+  # gateway = Gateway(input.gateway_user, input.gateway_server)
+  # proxy = Proxy(input.proxy_user, input.proxy_server)
 
-class GUI(Frame):
-  def __init__(self):
-    super().__init__()
+  # preseed = Preseed(
+  #   vps.user,
+  #   vps.password,
+  #   vps.IP,
+  #   Preseed.HOSTNAME
+  # )
 
-    self.master.title("Vault Payload")
-    self.pack(fill = BOTH, expand = True)
+  # sys.stdout.write(f"{Preseed.HOSTNAME}".center(os.get_terminal_size().columns))
 
-    self.columnconfigure(1, weight = 1)
-    self.columnconfigure(2, pad = 1)
-    
-    self.v_User = Label(self, text = "VPS Username")
-    self.v_User.grid(row = 0, column = 0, columnspan = 1, pady = 4, padx = 5, ipadx = 5)
-    self.v_User_entry = Entry(self, justify = "center")
-    self.v_User_entry.grid(row = 1, column = 0, columnspan = 1, padx = 5, sticky = E+W+S+N)
+  # installer = Installer(vps_image, vps.RAM, vps.CPUs)
 
-    self.v_Password = Label(self, text = "Password")
-    self.v_Password.grid(row = 0, column = 1, columnspan = 1, pady = 4, padx = 5, ipadx = 5)
-    self.v_Password_entry = Entry(self, show = "*", justify = "center")
-    self.v_Password_entry.grid(row = 1, column = 1, columnspan = 1, padx = 5, sticky = E+W+S+N)
-    self.v_Password_entry.insert(0, "Knowledge")
-    self.v_Password_button = Button(self, text = "Show", command = self.showPassword)
-    self.v_Password_button.grid(row = 1, column = 3, padx = 5)
+  # installer.install(
+  #   vps.type,
+  #   vps.user,
+  #   vps.password,
+  #   vps.IP
+  # )
 
-    self.v_IP = Label(self, text = "VPS IP-Address")
-    self.v_IP.grid(row = 2, column = 0, columnspan = 1, pady = 4, padx = 5, ipadx = 5)
-    self.v_IP_entry = Entry(self, justify = "center")
-    self.v_IP_entry.grid(row = 3, column = 0, columnspan = 1, padx = 5, sticky = E+W+S+N)
+  # CMD().execute(f"""ssh snow@192.168.0.1 -t "sudo {vDIRECTORY}create-VPS.sh" """)
 
-    self.activate = Button(self, text = "Execute", command = self.executePayload)
-    self.activate.grid(row = 5, column = 1, padx = 5, pady = 10, sticky = E)
+  # command = f"sudo {vDIRECTORY}create-VPS.sh"
+  # subprocess.call(shlex.split(command))
+  
+  # Progress(750).display()
 
-    self.close = Button(self, text = "Close", command = self.master.destroy)
-    self.close.grid(row = 5, column = 3, padx = 5, pady = 5)
-    
-    self.help_button = Button(self, text = "Help")
-    self.help_button.grid(row = 5, column = 0, padx = 5, pady = 10, sticky = W)
+  # gateway.updateDNS(vps)
+  # gateway.createUser(vps)
 
-  def showPassword(self):
-    text = self.v_Password_entry.get()
+  # proxy.updateProxy(vps)
 
-    self.v_Password_entry = Entry(self, justify = "center")
-    self.v_Password_entry.insert(0, f"{text}")
-    self.v_Password_entry.grid(row = 1, column = 1, columnspan = 1, padx = 5)
+  # if vps.type == "Wordpress":
+  #   installer.install_wordpress_database(vps.password, vps.IP)
+  # 
+  # if vps.FQDN != "N/A" and vps.FQDN != None:
+  #   command = f"""ssh {proxy.user}@{proxy.IP} "sudo wget -O /tmp/add-domain.py 'https://unixvault.com/proxy/add-domain.py' --no-check-certificate && sudo chmod +x /tmp/add-domain.py && sudo /tmp/add-domain.py {vps.hostname} {vps.FQDN}" """
+  #   Terminal(command).run()
+  
+  # remote_host.emailPrivateKey_windows()
 
-  def executePayload(self):
-    v_User = self.v_User_entry.get()
-    v_Password = self.v_Password_entry.get()
-    v_IP = self.v_IP_entry.get()
-
-    input.v_User = v_User
-    input.v_Password = v_Password
-    input.v_IP = v_IP
-
-    main()
+  sys.stdout.write("Payload(s) Delivered".center(os.get_terminal_size().columns))
 
 if __name__ == "__main__":
+  # v_profiler = cProfile.Profile()
+  # v_profiler.enable()
+
   parser = argparse.ArgumentParser(prog = "Vault Payload", argument_default = argparse.SUPPRESS)
+
+  parser.add_argument("-L", "--Local", type = bool, default = True, required = False)
 
   parser.add_argument("-D", "--Domain", type = str, default = None, required = False)
   parser.add_argument("--SSL", type = int, default = False, required = False)
 
-  parser.add_argument("--v_User", type = str, default = "bionic",  required = False)
-  parser.add_argument("--v_Password", type = str, default = "Knowledge", required = False)
-  parser.add_argument("--v_IP", type = str, default = "169.254.0.1", required = False)
-  parser.add_argument("--v_Type", type = str, default = "minimal", required = False)
-  parser.add_argument("--v_RAM", type = int, default = 512, required = False)
-  parser.add_argument("--v_CPU", type = int, default = 1, required = False)
+  parser.add_argument("--vps_username", type = str, default = "bionic-test-1006",  required = False)
+  parser.add_argument("--vps_password", type = str, default = "Knowledge", required = False)
+  parser.add_argument("--vps_type", type = str, default = "minimal", required = False)
+  parser.add_argument("--vps_RAM", type = int, default = 512, required = False)
+  parser.add_argument("--vps_CPU", type = int, default = 1, required = False)
 
-  parser.add_argument("--h_User", type = str, default = "snow", required = False)
-  parser.add_argument("--h_IP", type = str, default = "192.168.1.99", required = False)
-  parser.add_argument("--h_OS", default = "windows", type = str, required = False)
+  parser.add_argument("--sql_username", type = str, default = "root", required = False)
+  parser.add_argument("--sql_password", type = str, default = "Kn0wledge!", required = False)
+  parser.add_argument("--sql_server", type = str, default = "192.168.1.75", required = False)
+  parser.add_argument("--sql_database", type = str, default = "V_PAYLOAD", required = False)
 
-  parser.add_argument("--p_User", type = str, default = "snow", required = False)
-  parser.add_argument("--p_IP", type = str, default = "192.168.1.60", required = False)
+  parser.add_argument("--virtualization_host_username", type = str, default = "snow", required = False)
+  parser.add_argument("--virtualization_host_email", type = str, default = "development.cloudhybrid@gmail.com", required = False)
+  parser.add_argument("--virtualization_host_password", type = str, default = "Kn0wledge!", required = False)
+  parser.add_argument("--virtualization_host_address", type = str, default = "192.168.0.1", required = False)
 
-  parser.add_argument("--g_User", type = str, default = "snow", required = False)
-  parser.add_argument("--g_IP", type = str, default = "192.168.0.5", required = False)
+  parser.add_argument("--remote_host_user", type = str, default = "snow", required = False)
+  parser.add_argument("--remote_host_password", type = str, default = "Kn0wledge!", required = False)
+  parser.add_argument("--remote_host_IP", type = str, default = "192.168.0.1", required = False)
+  parser.add_argument("--remote_host_OS", type = str, default = "linux", required = False)
+  parser.add_argument("--local_host_OS", type = str, default = "windows", required = False)
 
-  parser.add_argument("--Gmail", nargs = "+", type = str, default = ["development.cloudhybrid@gmail.com", "Kn0wledge!", "jsanders4129@gmail.com"], required = False)
+  parser.add_argument("--proxy_user", type = str, default = "snow", required = False)
+  parser.add_argument("--proxy_server", type = str, default = "192.168.1.60", required = False)
 
-  parser.add_argument("--GUI", type = str, default = True, required = False)
+  parser.add_argument("--gateway_user", type = str, default = "snow", required = False)
+  parser.add_argument("--gateway_server", type = str, default = "192.168.0.5", required = False)
 
-  input = parser.parse_args()
+  # --email format: [{mail address to be used as sender}, {password used to access sender's mail address}, {recipient's maill address}]
+  parser.add_argument("--email", nargs = "+", type = str, default = [
+    "development.cloudhybrid@gmail.com", 
+    "Kn0wledge!", 
+    "jsanders4129@gmail.com"
+  ], required = False)
 
-  if input.GUI == True:
-    Display().header()
-    Display().copyright()
+  parser.add_argument("--GUI", type = str, default = False, required = False)
 
-    interface = Tk()
-    logo = resource_path("Vault.ico")
-    interface.iconbitmap(logo)
-    display = GUI()
-    interface.mainloop()
-  else:
-    if input.v_IP or input.v_User == None:
-      print("Invalid Input")
-      quit()
-    else:
-      print("Executing Injections".center(os.get_terminal_size().columns))
-      main()
+  shell_input = parser.parse_args()
+
+  main()
